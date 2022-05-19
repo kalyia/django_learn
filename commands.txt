@@ -27,6 +27,8 @@ class CustomClassName(models.Model):
     ...
     name_field = models.TypeClass()
 
+python3 manage.py makemigrations (name_app)  (1)
+python3 manage.py migrate (name_app)         (2)
 
 python3 manage.py makemigrations name_app/. (1)
 python3 manage.py migrate name_app          (2)
