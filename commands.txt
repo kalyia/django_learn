@@ -1,5 +1,8 @@
+Terminal
 python3 -m venv venv && .venv/bin/activate
 
+Создать файл requirements.txt --> pip install -r requirements.txt
+           or
 pip install Django==3.2
 pip install Djangorestframework
 
@@ -18,7 +21,9 @@ config.settings ----> INSTALLED_APPS = [
     'name_app'
 ]
 
-name_app.models ----> write structure subject
+Создать БД для проекта, настроить settings
+
+name_app.models ----> write structure of the subject
 from Django.db import models
 
 
@@ -27,10 +32,180 @@ class CustomClassName(models.Model):
     ...
     name_field = models.TypeClass()
 
-python3 manage.py makemigrations (name_app)  (1)
-python3 manage.py migrate (name_app)         (2)
 
 python3 manage.py makemigrations name_app/. (1)
 python3 manage.py migrate name_app          (2)
 
 python3 manage.py runserver (default=8000)
+
+********************************************************************************************
+Во views.py 
+
+from rest_framework.response import Response
+
+from .models import News
+
+
+def news_list(request):
+    news = News.objects.all()
+    return Response
+
+
+class NewsList:
+    pass
+
+
+
+News.objects.all()  #получение общего списка
+# SELECT * FROM news:
+
+News.objects.only('title')
+#SELECT title FROM news;
+
+News.objects.defer('title')
+#SELECT desc, author, create_date FROM news;
+
+#News.objects.filter(condition)
+#SELECT * FROM news WHERE condition;
+
+#сравнение(==, !=, ...)
+News.objects.filter(author_id=1)   #SELECT * FROM news WHERE author=1;
+
+News.objects.filter(create_date__gt='datetime_object')
+#SELECT * FROM news WHERE create_date > datetime_object;
+
+News.objects.filter(create_date__lt='datetime_object')
+#SELECT * FROM news WHERE create_date < datetime_object;
+
+News.objects.filter(create_date__gte='datetime_object')
+#SELECT * FROM news WHERE create_date >= datetime_object;
+
+News.objects.filter(create_date__lte='datetime_object')
+#SELECT * FROM news WHERE create_date <= datetime_object;
+
+News.objects.filter(~Q(author_id=1))
+# SELECT * FROM news WHERE NOT author_id=1;
+
+News.objects.filter(~Q(author_id=1)).only('title')
+
+#begin_date = ...
+#end_date = ...
+
+News.objects.filter(create_date__gte=begin_date).filter(create_date__lte=end_date)
+                          or
+News.objects.filter(create_date__gte=begin_date, create_date__lte=end_date)
+#SELECT * FROM news WHERE create_date >= begin_date AND create_date <= end_date;
+
+
+News.objects.filter(create_date__range=(begin_date, end_date))
+#SELECT * FROM news WHERE create_date BETWEEN begin_date AND end_date;
+
+
+#LIKE, ILIKE
+
+#строка строго равна чему то
+word = 'Hello'
+
+News.objects.filter(title='Hello')
+SELECT * FROM news WHERE title='Hello';
+
+News.objects.filter(title__exact='Hello')
+SELECT * FROM news WHERE title LIKE 'Hello';
+
+News.objects.filter(title__iexact='hello')
+SELECT * FROM news WHERE title ILIKE 'hello';
+
+#строка начинается с какой то подстроки
+News.objects.filter(title__startswith='Hello')
+SELECT * FROM news WHERE title LIKE 'Hello%';
+
+#строка оканчивается какой то подстрокой
+News.objects.filter(title__endsswith='Hello')
+SELECT * FROM news WHERE title LIKE '%Hello';
+
+#строка содержит что то
+News.objects.filter(title__contains='Hello')
+SELECT * FROM news WHERE title LIKE '%Hello%';
+
+
+News.objects.filter(author_id__in=[1,2,3,4])
+SELECT * FROM news WHERE author_id IN (1,2,3,4);
+
+
+#получение одного объекта
+News.objects.get(id=1)  #get возвращает только один объект
+SELECT * FROM news WHERE id=1;
+
+#получение определенного количества
+#Queryset (список из объектов модели)
+News.objects.all()[:5]
+SELECT * FROM news LIMIT 5;
+
+News.objects.filter(условие)[:5]
+SELECT * FROM news WHERE условие LIMIT 5;
+
+
+#ORDER BY
+
+News.objects.order_by('create_date')
+SELECT * FROM news ORDER BY create_date;
+
+News.objects.order_by('-create_date')
+SELECT * FROM news ORDER BY create_date DESC;
+
+News.objects.filter(...).order_by(...).only()[:5]
+
+News.objects.count()
+SELECT COUNT(*) FROM news;
+
+News.objects.filter(...).count()
+SELECT COUNT(*) FROM news WHERE ...;
+
+
+#INSERT
+
+n1 = News(title=..., desc=..., ...) # tolko 1 sozdaet
+n1.save()
+
+n2 = News.objects.create(title=..., desc=..., ...) # tolko 1 sozdaet
+
+INSERT INTO news(fields) VALUES(...);
+
+News.objects.bulk_create(
+    [
+        News(title=..., desc=..., ....),   #можно закинуть переменную
+        News(title=..., desc=..., ....),
+        News(title=..., desc=..., ....)
+    ]
+)
+INSERT INTO news(fields) VALUES(...),(...),(...);
+
+
+#UPDATE
+
+News.objects.update(title='123')
+UPDATE news SET title='123'
+
+News.objects.filter(id=2).update(title='123')
+               or
+n1 = News.objects.get(id=2)
+n1.title = '123'
+n1.save()
+UPDATE news SET title='123' WHERE id=2;
+
+News.objects.filter(create_date__gt=...).update(title='123')
+UPDATE news SET title='123' WHERE create_date > ...;
+
+
+#DELETE
+
+News.objects.delete()
+DELETE FROM news;
+
+News.objects.filter(...).delete()
+DELETE FROM news WHERE ...;
+
+n1 = News.objects.get(id=2) #удаление одного объекта
+n1.delete()
+
+*********************************************************************************
